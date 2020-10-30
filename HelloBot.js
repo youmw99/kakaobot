@@ -1,8 +1,9 @@
 const scriptName = "HelloBot";
 const operArr = ["지도","날씨","퇴근","help","?"];
-const cityDicK = ["도쿄","오사카","나고야","요코하마","토치기","치바","서울","대전","대구","부산","광주","인천","울산"];
-const cityDicE = ["Tokyo","Osaka","Nagoya","Yokohama","Tochigi","Chiba","Seoul","Daejeon","Daegu","Busan","Gwangju","Incheon","Ulsan"];
-const API_KEY = "plese insert API Key"
+const cityDicK = ["도쿄","오사카","나고야","요코하마","토치기","치바","사이타마","서울","대전","대구","부산","광주","인천","울산","하노이"];
+const cityDicE = ["Tokyo","Osaka","Nagoya","Yokohama","Tochigi","Chiba","Saitama","Seoul","Daejeon","Daegu","Busan","Gwangju","Incheon","Ulsan","Hanoi"];
+const API_KEY = "please insert api key";
+
 /**
  * (string) room
  * (string) sender
@@ -21,7 +22,7 @@ var wrongOperation = (function(){
  
 var calRemainTime = (function(){
   return function(keyword,replier){
-    
+    replier.reply("아직 구현중인 기능이에요! 좀만 더 기다려주세요.");
   };
 })();
  
@@ -29,7 +30,12 @@ var searchBroadCast = (function(){
   return function(keyword,replier){
       var str = keyword.split(" ");
       if(cityDicK.indexOf(str[0])!==-1){
-              fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cityname}&appid=${API_KEY}`);        
+        var citynameindex = cityDicK.indexOf(str[0]);
+        var cityname = cityDicE[citynameindex];
+        var jstr = Utils.getWebText("https://api.openweathermap.org/data/2.5/weather?q="+cityname+"&appid="+API_KEY+"&units=metric",
+            "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",false,false).replace(/(<([^>]+)>)/g, "").trim();
+        var jinfo = JSON.parse(jstr);
+      replier.reply("현재 "+str[0]+"의 날씨는 "+jinfo.weather[0].main+"입니다.\n"+"기온은 " + jinfo.main.temp + "도 입니다.");
       }
       else{
         wrongOperation(replier);
@@ -62,7 +68,7 @@ var botWork = (function() {
       break;
     case operArr[3]:
     case operArr[4]:
-      replier.reply("사용가능한 명령어 : \n/지도 검색어 \n/날씨 검색위치 \n/퇴근 퇴근시간");
+      replier.reply("사용가능한 명령어 : \n"+operArr);
       break;
     default:
       wrongOperation(replier);
