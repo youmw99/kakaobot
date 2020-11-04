@@ -22,7 +22,24 @@ var wrongOperation = (function(){
  
 var calRemainTime = (function(){
   return function(keyword,replier){
-    replier.reply("아직 구현중인 기능이에요! 좀만 더 기다려주세요.");
+    var date = new Date();
+    var hours = date.getHours();
+    var min = date.getMinutes();
+    var sec = date.getSeconds();
+    var str = keyword.replace(/[^0-9]/g,"");
+    var leftHours = str.substring(0,2)*1-hours;
+    var leftMin = str.substring(2,4)*1-min;
+    
+    if(str.length!==4){
+     replier.reply("시간을 올바르게 입력해주세요\n예)18:00 혹은 1800"); 
+    }
+    else if(leftHours<0||leftHours==0&&leftMin<0){
+     replier.reply(Math.abs(leftHours)+"시간 "+Math.abs(leftMin)+"분 째 야근중이시네요 풉ㅋ풉ㅋ"); 
+    }
+    else{
+     leftMin>0?replier.reply("퇴근까지 "+leftHours+"시간 "+leftMin+"분 남았습니다.\n힘내세요!"):
+     replier.reply("퇴근까지 "+(leftHours-1)+"시간 "+(60-leftMin)+"분 남았습니다.\n힘내세요!");
+    }
   };
 })();
  
