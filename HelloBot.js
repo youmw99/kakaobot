@@ -37,8 +37,8 @@ var calRemainTime = (function(){
      replier.reply(Math.abs(leftHours)+"시간 "+Math.abs(leftMin)+"분 째 야근중이시네요 풉ㅋ풉ㅋ"); 
     }
     else{
-     leftMin>0?replier.reply("퇴근까지 "+leftHours+"시간 "+leftMin+"분 남았습니다.\n힘내세요!"):
-     replier.reply("퇴근까지 "+(leftHours-1)+"시간 "+(60-leftMin)+"분 남았습니다.\n힘내세요!");
+     leftMin<0?replier.reply("퇴근까지 "+(leftHours-1)+"시간 "+(60+leftMin)+"분 남았습니다.\n힘내세요!"):
+     replier.reply("퇴근까지 "+leftHours+"시간 "+leftMin+"분 남았습니다.\n힘내세요!");
     }
   };
 })();
