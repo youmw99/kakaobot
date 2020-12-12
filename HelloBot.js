@@ -16,7 +16,30 @@ const API_KEY = "please insert api key";
 
 var wrongOperation = (function(){
   return function(replier){
-    replier.reply("명령이 올바르지 않습니다.\n/? 또는 /help 명령어를 통하여 사용가능한 명령어를 확인할 수 있습니다.");
+    replier.reply("혹시 명령어를 올바르게 입력하셨나요?\n"+
+                  "/? 또는 /help 명령어를 통하여 사용가능한 명령어를 확인할 수 있습니다."+
+                  "\n(예 : /지도 검색어)");
+  };
+})();
+
+var translateIt = (function(){
+  return function(operation,keyword,replier){
+    try{
+      var lanobj = {
+      한 : 'ko', 영 : 'en', 일 : 'ja', 
+      중 : 'zh-CN', 베 : 'vi', 인 : 'id', 
+      태 : 'th', 독 : 'de', 러 : 'ru', 
+      스 : 'es', 이 : 'it', 프 : 'fr',
+      };
+      let str = Api.papagoTranslate('ko',lanobj[operation],keyword);
+      replier.reply(str);
+    }
+    catch(err){
+      replier.reply("혹시 명령어를 잘못 입력하지 않으셨나요?\n"+
+                    "번역 명령어는 다음과 같이 입력할 수 있습니다.\n\n"+
+                    "예)/일 안녕하세요\n"+
+                    "파파고에서 서비스하는 모든 언어를 이용하실 수 있습니다!");
+    }
   };
 })();
  
@@ -62,34 +85,39 @@ var searchBroadCast = (function(){
 
 var searchOnMap = (function() {
   return function(keyword, replier) {
-  var baseURL = "https://www.google.com/maps/search/?api=1&query=";
-  var keywordArr = keyword.split(" ");
-  for (var i = 0; i < keywordArr.length; i++) {
-    baseURL += "+" + keywordArr[i];
-  }
+    var baseURL = "https://www.google.com/maps/search/?api=1&query=";
+    var keywordArr = keyword.split(" ");
+    for (var i = 0; i < keywordArr.length; i++) {
+      baseURL += "+" + keywordArr[i];
+    }
   replier.reply("검색하신 " + keyword + "의 구글맵 검색결과입니다.\n" + baseURL);
-};
+  };
 })();
 
 var botWork = (function() {
   return function(operation, keyword, replier) {
-  switch (operation) {
-    case operArr[0]:
-      searchOnMap(keyword, replier);
-      break;
-    case operArr[1]:
-      searchBroadCast(keyword,replier);
-      break;
-    case operArr[2]:
-      calRemainTime(keyword,replier);
-      break;
-    case operArr[3]:
-    case operArr[4]:
-      replier.reply("사용가능한 명령어 : \n"+operArr);
-      break;
-    default:
-      wrongOperation(replier);
-      break;
+    if(operation.length===1){
+      translateIt(operation,keyword, replier);
+    }
+    else{
+      switch (operation) {
+        case operArr[0]:
+          searchOnMap(keyword, replier);
+          break;
+        case operArr[1]:
+          searchBroadCast(keyword,replier);
+          break;
+        case operArr[2]:
+          calRemainTime(keyword,replier);
+          break;
+        case operArr[3]:
+        case operArr[4]:
+          replier.reply("사용가능한 명령어 : \n"+operArr);
+          break;
+        default:
+          wrongOperation(replier);
+          break;
+    }
   }
 };
 })();
@@ -108,7 +136,7 @@ function response(room, msg, sender, isGroupChat, replier, imageDB, packageName)
     }
   }  catch (err) {
   replier.reply(err);
-}
+  }
 }
 //아래 4개의 메소드는 액티비티 화면을 수정할때 사용됩니다.
 function onCreate(savedInstanceState, activity) {
