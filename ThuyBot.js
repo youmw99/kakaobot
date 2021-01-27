@@ -1,8 +1,7 @@
 const scriptName = "ThuyBot";
 const ROOMNAME = ["TMW"];
-const detectVI = new RegExp(/[a-zA-z]/);
-const detectKO = new RegExp(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/);
-const resultLan = ["vi","ko"];
+const LANGPACK = [new RegExp(/[a-zA-z]/), new RegExp(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/), new RegExp(/[亜-熙ぁ-んァ-ヶ]/)];
+const resultLan = ["vi", "ko", "ja"];
 /**
  * (string) room
  * (string) sender
@@ -12,28 +11,52 @@ const resultLan = ["vi","ko"];
  * (string) imageDB.getProfileBase64()
  * (string) packageName
  */
- 
-var botWorkTMW = (function(){
-  return function(msg, sender, replier){
-    if(detectVI.test(msg)){
-      let str = Api.papagoTranslate(resultLan[0],resultLan[1],msg);
-      replier.reply(str);
-    }
-    else if(detectKO.test(msg)){
-      let str = Api.papagoTranslate(resultLan[1],resultLan[0],msg);
-      replier.reply(str);
+var translate = (function() {
+  return function(msg, replier, objLan) {
+    var detectstr = detectLan(msg);
+    if(resultLan[detectstr]!==objLan){
+      var str = Api.papagoTranslate(resultLan[detectstr], objLan, msg);
     }
   };
 })();
- 
+var botWorkTMW = (function() {
+  var detectLan = function(msg) {
+    var i = 0;
+    for (i; i < LANGPACK.length; i++) {
+      if (LANGPACK[i].test(msg)) {
+        break;
+      }
+    }
+    return i;
+  };
+  return function(msg, sender, replier) {
+    var sourceLan = detectLan(msg);
+    var str = '';
+    switch(sourceLan){
+      case 0:
+        str = Api.papagoTranslate(resultLan[sourceLan], 'ko', msg);
+        break;
+      case 1:
+        str = Api.papagoTranslate(resultLan[sourceLan], 'vi', msg);
+        break;
+      case 2:
+        str = Api.papagoTranslate(resultLan[sourceLan], 'ko', msg);
+        if(sender==='YMW'){
+          str=Api.papagoTranslate('ko', 'vi', str);
+        }
+        break;
+    }
+    replier.reply(str);
+};
+})();
 function response(room, msg, sender, isGroupChat, replier, imageDB, packageName) {
   try {
-    if (room==="TMW") {
+    if (room === "TMW") {
       botWorkTMW(msg, sender, replier);
     }
   }  catch (err) {
   replier.reply(err);
-  }
+}
 }
 //아래 4개의 메소드는 액티비티 화면을 수정할때 사용됩니다.
 function onCreate(savedInstanceState, activity) {
@@ -42,11 +65,11 @@ function onCreate(savedInstanceState, activity) {
   textView.setTextColor(android.graphics.Color.DKGRAY);
   activity.setContentView(textView);
 }
-
-function onStart(activity) {}
-
-function onResume(activity) {}
-
-function onPause(activity) {}
-
-function onStop(activity) {}
+function onStart(activity) {
+}
+function onResume(activity) {
+}
+function onPause(activity) {
+}
+function onStop(activity) {
+}

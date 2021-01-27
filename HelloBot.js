@@ -1,8 +1,9 @@
 const scriptName = "HelloBot";
-const operArr = ["지도","날씨","퇴근","help","?"];
-const cityDicK = ["도쿄","오사카","나고야","요코하마","토치기","치바","사이타마","서울","대전","대구","부산","광주","인천","울산","하노이"];
-const cityDicE = ["Tokyo","Osaka","Nagoya","Yokohama","Tochigi","Chiba","Saitama","Seoul","Daejeon","Daegu","Busan","Gwangju","Incheon","Ulsan","Hanoi"];
-const API_KEY = "please insert api key";
+const operArr = ["지도","날씨","퇴근","help"];
+const API_KEY = {
+  GOOGLE : "",
+  OPENWEATHER : ""
+};
 
 /**
  * (string) room
@@ -17,8 +18,8 @@ const API_KEY = "please insert api key";
 var wrongOperation = (function(){
   return function(replier){
     replier.reply("혹시 명령어를 올바르게 입력하셨나요?\n"+
-                  "/? 또는 /help 명령어를 통하여 사용가능한 명령어를 확인할 수 있습니다."+
-                  "\n(예 : /지도 검색어)");
+                  "/help 명령어를 통하여 사용가능한 명령어를 확인할 수 있습니다."+
+                  "\n(예 : /지도 검색어)\n");
   };
 })();
 
@@ -26,10 +27,10 @@ var translateIt = (function(){
   return function(operation,keyword,replier){
     try{
       var lanobj = {
-      한 : 'ko', 영 : 'en', 일 : 'ja', 
-      중 : 'zh-CN', 베 : 'vi', 인 : 'id', 
-      태 : 'th', 독 : 'de', 러 : 'ru', 
-      스 : 'es', 이 : 'it', 프 : 'fr',
+      한 : 'ko', 영 : 'en', 일 : 'ja',
+      중 : 'zh-CN', 베 : 'vi', 인 : 'id',
+      태 : 'th', 독 : 'de', 러 : 'ru',
+      스 : 'es', 이 : 'it', 프 : 'fr'
       };
       let str = Api.papagoTranslate('ko',lanobj[operation],keyword);
       replier.reply(str);
@@ -42,7 +43,7 @@ var translateIt = (function(){
     }
   };
 })();
- 
+
 var calRemainTime = (function(){
   return function(keyword,replier){
     var date = new Date();
@@ -52,12 +53,12 @@ var calRemainTime = (function(){
     var str = keyword.replace(/[^0-9]/g,"");
     var leftHours = str.substring(0,2)*1-hours;
     var leftMin = str.substring(2,4)*1-min;
-    
+
     if(str.length!==4){
-     replier.reply("시간을 올바르게 입력해주세요\n예)18:00 혹은 1800"); 
+     replier.reply("시간을 올바르게 입력해주세요\n예)18:00 혹은 1800");
     }
     else if(leftHours<0||leftHours==0&&leftMin<0){
-     replier.reply(Math.abs(leftHours)+"시간 "+Math.abs(leftMin)+"분 째 야근중이시네요 풉ㅋ풉ㅋ"); 
+     replier.reply(Math.abs(leftHours)+"시간 "+Math.abs(leftMin)+"분 째 야근중이시네요 풉ㅋ풉ㅋ");
     }
     else{
      leftMin<0?replier.reply("퇴근까지 "+(leftHours-1)+"시간 "+(60+leftMin)+"분 남았습니다.\n힘내세요!"):
@@ -65,21 +66,30 @@ var calRemainTime = (function(){
     }
   };
 })();
- 
+
 var searchBroadCast = (function(){
+  var toStringWeather = function(weather_jinfo){
+    const SHOWDAY = 3;
+    var str = "현재 기온 : "+weather_jinfo.current.temp+"도\n"
+              +"현재 날씨 : "+weather_jinfo.current.weather[0].description;
+    for(var i=0;i<SHOWDAY;i++){
+      str += "\n"+i+"일 후 기온 : "+weather_jinfo.daily[i].temp.day+"도 "
+               +"날씨 : "+weather_jinfo.daily[i].weather[0].description;
+    }
+    return str;
+  };
   return function(keyword,replier){
-      var str = keyword.split(" ");
-      if(cityDicK.indexOf(str[0])!==-1){
-        var citynameindex = cityDicK.indexOf(str[0]);
-        var cityname = cityDicE[citynameindex];
-        var jstr = Utils.getWebText("https://api.openweathermap.org/data/2.5/weather?q="+cityname+"&appid="+API_KEY+"&units=metric",
-            "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",false,false).replace(/(<([^>]+)>)/g, "").trim();
-        var jinfo = JSON.parse(jstr);
-      replier.reply("현재 "+str[0]+"의 날씨는 "+jinfo.weather[0].main+"입니다.\n"+"기온은 " + jinfo.main.temp + "도 입니다.");
-      }
-      else{
-        wrongOperation(replier);
-      }
+      var str = keyword.replace(/\s/,"+");
+      var google_jstr = Utils.getWebText("https://maps.googleapis.com/maps/api/geocode/json?address="+keyword+"&key="+API_KEY.GOOGLE,
+              "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",false,false).replace(/(<([^>]+)>)/g, "").trim();
+      var google_jinfo = JSON.parse(google_jstr);
+      var weather_jstr = Utils.getWebText("https://api.openweathermap.org/data/2.5/onecall?lat="
+              +google_jinfo.results[0].geometry.location.lat+"&lon="+google_jinfo.results[0].geometry.location.lng
+              +"&exclude=minutely,hourly&appid="+API_KEY.OPENWEATHER+"&units=metric&lang=kr",
+              "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",false,false).replace(/(<([^>]+)>)/g, "").trim();
+      var weather_jinfo = JSON.parse(weather_jstr);
+      var weather_result = toStringWeather(weather_jinfo);
+      replier.reply(keyword+"의 날씨 검색결과입니다.\n"+weather_result);
   };
 })();
 
@@ -111,8 +121,9 @@ var botWork = (function() {
           calRemainTime(keyword,replier);
           break;
         case operArr[3]:
-        case operArr[4]:
-          replier.reply("사용가능한 명령어 : \n"+operArr);
+          replier.reply("사용가능한 명령어 : \n"+
+                        operArr+"\n"+
+                        "번역의 경우 :\n /번역대상언어 내용");
           break;
         default:
           wrongOperation(replier);
