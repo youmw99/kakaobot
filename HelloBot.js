@@ -100,12 +100,12 @@ var botWork = (function() {
   var wrongOperation = function(){
     return "혹시 명령어를 올바르게 입력하셨나요?\n"+
                     "/help 명령어를 통하여 사용가능한 명령어를 확인할 수 있습니다."+
-                    "\n(예 : /지도 검색어)\n";
+                    "\n(예 : !지도 검색어)\n";
   }
   return function(operation, keyword, replier) {
     var str = "";
     if(operation.length===1){
-      translateIt(operation,keyword);
+      str = translateIt(operation,keyword);
     }
     else{
       switch (operation) {
@@ -121,7 +121,7 @@ var botWork = (function() {
         case operArr[3]:
           str = "사용가능한 명령어 : \n"+
                         operArr+"\n"+
-                        "번역의 경우 :\n /번역대상언어 내용";
+                        "번역의 경우 :\n !번역대상언어 내용";
           break;
         default:
           str = wrongOperation();

@@ -2,6 +2,7 @@ const scriptName = "ThuyBot";
 const ROOMNAME = ["TMW"];
 const LANGPACK = [new RegExp(/[a-zA-z]/), new RegExp(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/), new RegExp(/[亜-熙ぁ-んァ-ヶ]/)];
 const resultLan = ["vi", "ko", "ja"];
+const skipMSG = ["사진을", "동영상을", "음성메시지를", "지도:", "파일:"];
 /**
  * (string) room
  * (string) sender
@@ -11,28 +12,21 @@ const resultLan = ["vi", "ko", "ja"];
  * (string) imageDB.getProfileBase64()
  * (string) packageName
  */
-var translate = (function() {
-  return function(msg, replier, objLan) {
-    var detectstr = detectLan(msg);
-    if(resultLan[detectstr]!==objLan){
-      var str = Api.papagoTranslate(resultLan[detectstr], objLan, msg);
-    }
-  };
-})();
 var botWorkTMW = (function() {
   var detectLan = function(msg) {
-    var i = 0;
-    for (i; i < LANGPACK.length; i++) {
-      if (LANGPACK[i].test(msg)) {
-        break;
-      }
+  var i = 0;
+  for (i; i < LANGPACK.length; i++) {
+    if (LANGPACK[i].test(msg)) {
+      break;
     }
-    return i;
-  };
+  }
+  return i;
+};
   return function(msg, sender, replier) {
+  if (skipMSG.indexOf(msg.split(' ')[0] ) == -1) {
     var sourceLan = detectLan(msg);
     var str = '';
-    switch(sourceLan){
+    switch (sourceLan) {
       case 0:
         str = Api.papagoTranslate(resultLan[sourceLan], 'ko', msg);
         break;
@@ -41,17 +35,17 @@ var botWorkTMW = (function() {
         break;
       case 2:
         str = Api.papagoTranslate(resultLan[sourceLan], 'ko', msg);
-        if(sender==='YMW'){
-          str=Api.papagoTranslate('ko', 'vi', str);
-        }
+                (sender === 'YMW') ? str = Api.papagoTranslate('ko', 'vi', str) : Api.papagoTranslate('vi', 'ko', str);
         break;
     }
     replier.reply(str);
+  }
+  return 0;
 };
 })();
 function response(room, msg, sender, isGroupChat, replier, imageDB, packageName) {
   try {
-    if (room === "TMW") {
+    if (msg.charAt(0) !== "!" && room === "TMW") {
       botWorkTMW(msg, sender, replier);
     }
   }  catch (err) {
