@@ -3,12 +3,14 @@ kakaobot with Vanilla JS
 
 ## Description
 ========================================================================
+
 this project is for kakaobot with MessengerBotR.
 With MessengerBotR, we can program kakaotalk messenger with Vanilla JS
 and make responses automatically.
 
 ### Hellobotjs
 ------------------------------------------------------------------------
+
 Hellobotjs provides auto-response function like
 1. Google Search
 2. Weather Search
@@ -19,4 +21,5 @@ If you want to use weather function, you have to get keys according to guideline
 
 ### Thuybotjs
 ------------------------------------------------------------------------
+
 this is for communicating with Vietnamese and Korean.(extremely private).
